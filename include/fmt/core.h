@@ -254,8 +254,8 @@ FMT_BEGIN_NAMESPACE
 // Implementations of enable_if_t and other metafunctions for older systems.
 template <bool B, typename T = void>
 using enable_if_t = typename std::enable_if<B, T>::type;
-template <bool B, typename T, typename F>
-using conditional_t = typename std::conditional<B, T, F>::type;
+template <bool B, typename T, typename _F>
+using conditional_t = typename std::conditional<B, T, _F>::type;
 template <bool B> using bool_constant = std::integral_constant<bool, B>;
 template <typename T>
 using remove_reference_t = typename std::remove_reference<T>::type;
@@ -1201,8 +1201,8 @@ FMT_CONSTEXPR FMT_INLINE void init_named_args(std::nullptr_t, int, int,
                                               const Args&...) {}
 
 template <bool B = false> constexpr auto count() -> size_t { return B ? 1 : 0; }
-template <bool B1, bool B2, bool... Tail> constexpr auto count() -> size_t {
-  return (B1 ? 1 : 0) + count<B2, Tail...>();
+template <bool _B1, bool B2, bool... Tail> constexpr auto count() -> size_t {
+  return (_B1 ? 1 : 0) + count<B2, Tail...>();
 }
 
 template <typename... Args> constexpr auto count_named_args() -> size_t {

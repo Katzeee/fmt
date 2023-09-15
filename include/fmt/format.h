@@ -703,8 +703,8 @@ constexpr FMT_INLINE_VARIABLE uint32_t invalid_code_point = ~uint32_t();
 
 // Invokes f(cp, sv) for every code point cp in s with sv being the string view
 // corresponding to the code point. cp is invalid_code_point on error.
-template <typename F>
-FMT_CONSTEXPR void for_each_codepoint(string_view s, F f) {
+template <typename _F>
+FMT_CONSTEXPR void for_each_codepoint(string_view s, _F f) {
   auto decode = [f](const char* buf_ptr, const char* ptr) {
     auto cp = uint32_t();
     auto error = 0;
@@ -1648,12 +1648,12 @@ FMT_CONSTEXPR auto write_exponent(int exp, It it) -> It {
 }
 
 // A floating-point number f * pow(2, e) where F is an unsigned type.
-template <typename F> struct basic_fp {
-  F f;
+template <typename _F> struct basic_fp {
+  _F f;
   int e;
 
   static constexpr const int num_significand_bits =
-      static_cast<int>(sizeof(F) * num_bits<unsigned char>());
+      static_cast<int>(sizeof(_F) * num_bits<unsigned char>());
 
   constexpr basic_fp() : f(0), e(0) {}
   constexpr basic_fp(uint64_t f_val, int e_val) : f(f_val), e(e_val) {}
@@ -1672,7 +1672,7 @@ template <typename F> struct basic_fp {
     const auto implicit_bit = carrier_uint(1) << num_float_significand_bits;
     const auto significand_mask = implicit_bit - 1;
     auto u = bit_cast<carrier_uint>(n);
-    f = static_cast<F>(u & significand_mask);
+    f = static_cast<_F>(u & significand_mask);
     auto biased_e = static_cast<int>((u & exponent_mask<Float>()) >>
                                      num_float_significand_bits);
     // The predecessor is closer if n is a normalized power of 2 (f == 0)
@@ -1681,7 +1681,7 @@ template <typename F> struct basic_fp {
     if (biased_e == 0)
       biased_e = 1;  // Subnormals use biased exponent 1 (min exponent).
     else if (has_implicit_bit<Float>())
-      f += static_cast<F>(implicit_bit);
+      f += static_cast<_F>(implicit_bit);
     e = biased_e - exponent_bias<Float>() - num_float_significand_bits;
     if (!has_implicit_bit<Float>()) ++e;
     return is_predecessor_closer;
@@ -1697,17 +1697,17 @@ template <typename F> struct basic_fp {
 using fp = basic_fp<unsigned long long>;
 
 // Normalizes the value converted from double and multiplied by (1 << SHIFT).
-template <int SHIFT = 0, typename F>
-FMT_CONSTEXPR basic_fp<F> normalize(basic_fp<F> value) {
+template <int SHIFT = 0, typename _F>
+FMT_CONSTEXPR basic_fp<_F> normalize(basic_fp<_F> value) {
   // Handle subnormals.
-  const auto implicit_bit = F(1) << num_significand_bits<double>();
+  const auto implicit_bit = _F(1) << num_significand_bits<double>();
   const auto shifted_implicit_bit = implicit_bit << SHIFT;
   while ((value.f & shifted_implicit_bit) == 0) {
     value.f <<= 1;
     --value.e;
   }
   // Subtract 1 to account for hidden bit.
-  const auto offset = basic_fp<F>::num_significand_bits -
+  const auto offset = basic_fp<_F>::num_significand_bits -
                       num_significand_bits<double>() - SHIFT - 1;
   value.f <<= offset;
   value.e -= offset;
@@ -1783,9 +1783,9 @@ FMT_NOINLINE FMT_CONSTEXPR auto fill(OutputIt it, size_t n,
 // size: output size in code units.
 // width: output display width in (terminal) column positions.
 template <align::type align = align::left, typename OutputIt, typename Char,
-          typename F>
+          typename _F>
 FMT_CONSTEXPR auto write_padded(OutputIt out, const format_specs<Char>& specs,
-                                size_t size, size_t width, F&& f) -> OutputIt {
+                                size_t size, size_t width, _F&& f) -> OutputIt {
   static_assert(align == align::left || align == align::right, "");
   unsigned spec_width = to_unsigned(specs.width);
   size_t padding = spec_width > width ? spec_width - width : 0;
@@ -1802,9 +1802,9 @@ FMT_CONSTEXPR auto write_padded(OutputIt out, const format_specs<Char>& specs,
 }
 
 template <align::type align = align::left, typename OutputIt, typename Char,
-          typename F>
+          typename _F>
 constexpr auto write_padded(OutputIt out, const format_specs<Char>& specs,
-                            size_t size, F&& f) -> OutputIt {
+                            size_t size, _F&& f) -> OutputIt {
   return write_padded<align>(out, specs, size, size, f);
 }
 

@@ -152,7 +152,7 @@ FMT_FUNC std::system_error vsystem_error(int error_code, string_view fmt,
 
 namespace detail {
 
-template <typename F> inline bool operator==(basic_fp<F> x, basic_fp<F> y) {
+template <typename _F> inline bool operator==(basic_fp<_F> x, basic_fp<_F> y) {
   return x.f == y.f && x.e == y.e;
 }
 
